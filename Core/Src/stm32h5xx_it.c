@@ -57,6 +57,7 @@ extern osThreadId_t cmdLineTaskHandle;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern ETH_HandleTypeDef heth;
 extern UART_HandleTypeDef huart3;
 extern TIM_HandleTypeDef htim6;
 
@@ -208,6 +209,20 @@ void USART3_IRQHandler(void)
   xTaskNotifyFromISR(cmdLineTaskHandle, (uint32_t)rxedValue, eSetValueWithOverwrite , NULL);
 
   /* USER CODE END USART3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles Ethernet global interrupt.
+  */
+void ETH_IRQHandler(void)
+{
+  /* USER CODE BEGIN ETH_IRQn 0 */
+
+  /* USER CODE END ETH_IRQn 0 */
+  HAL_ETH_IRQHandler(&heth);
+  /* USER CODE BEGIN ETH_IRQn 1 */
+
+  /* USER CODE END ETH_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
