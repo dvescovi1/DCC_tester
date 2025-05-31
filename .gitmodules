@@ -1,3 +1,4 @@
 [submodule "FreeRTOS-Plus-TCP"]
 	path = Middlewares/Third_Party
 	url = https://github.com/FreeRTOS/FreeRTOS-Plus-TCP
+	branch = main
