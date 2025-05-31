@@ -5,7 +5,8 @@ enable_language(C ASM)
 set(MX_Defines_Syms 
 	USE_NUCLEO_64 
 	USE_HAL_DRIVER 
-	STM32H563xx
+	STM32H563xx 
+	STM32_THREAD_SAFE_STRATEGY=2
     $<$<CONFIG:Debug>:DEBUG>
 )
 
