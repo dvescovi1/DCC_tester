@@ -58,6 +58,7 @@ extern osThreadId_t cmdLineTaskHandle;
 
 /* External variables --------------------------------------------------------*/
 extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
 extern TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN EV */
@@ -200,14 +201,28 @@ void USART2_IRQHandler(void)
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
+
+  /* USER CODE END USART2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART3 global interrupt.
+  */
+void USART3_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART3_IRQn 0 */
+
+  /* USER CODE END USART3_IRQn 0 */
+  HAL_UART_IRQHandler(&huart3);
+  /* USER CODE BEGIN USART3_IRQn 1 */
   // grab char from data register
-  char rxedValue = USART2->RDR & 0xFF;
+  char rxedValue = USART3->RDR & 0xFF;
   //get ready to receive another char
-  HAL_UART_Receive_IT(&huart2, (uint8_t *)&huart2.Instance->RDR, 1);
+  HAL_UART_Receive_IT(&huart3, (uint8_t *)&huart3.Instance->RDR, 1);
   //send the char to the command line task
   xTaskNotifyFromISR(cmdLineTaskHandle, (uint32_t)rxedValue, eSetValueWithOverwrite , NULL);
 
-  /* USER CODE END USART2_IRQn 1 */
+  /* USER CODE END USART3_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

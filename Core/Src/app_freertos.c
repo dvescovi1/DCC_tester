@@ -113,7 +113,9 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    osDelay(500);
+    /* Toggle the green LED */
+    BSP_LED_Toggle(LED_GREEN);
   }
   /* USER CODE END defaultTask */
 }

@@ -67,7 +67,8 @@ BaseType_t cmd_toggle_led(char *pcWriteBuffer, size_t xWriteBufferLen,
 BaseType_t cmd_add(char *pcWriteBuffer, size_t xWriteBufferLen,
                                  const char *pcCommandString)
 {
-    char *pcParameter1, *pcParameter2;
+    (void)xWriteBufferLen;
+    const char *pcParameter1, *pcParameter2;
     BaseType_t xParameter1StringLength, xParameter2StringLength;
 
     /* Obtain the name of the source file, and the length of its name, from
