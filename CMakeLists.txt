@@ -44,7 +44,7 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
-set(FREERTOS_KERNEL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party")
+set(FREERTOS_KERNEL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party")
 
 # Add the freertos_config for FreeRTOS-Kernel
 add_library(freertos_config INTERFACE)
@@ -83,8 +83,8 @@ FetchContent_MakeAvailable(freertos_plus_tcp)
 target_include_directories(freertos_plus_tcp PUBLIC
     # Add user defined include paths
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party/FreeRTOS/Source/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure
     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32H5xx_HAL_Driver/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32H5xx/Include
