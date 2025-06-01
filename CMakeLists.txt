@@ -50,22 +50,19 @@ FetchContent_Declare( freertos_plus_tcp
   GIT_SUBMODULES "" # Don't grab any submodules since not latest
 )
 
-#set(FREERTOS_PLUS_TCP_NETWORK_IF "STM32" CACHE STRING "" FORCE)
-set(FREERTOS_PLUS_TCP_NETWORK_IF "LOOPBACK" CACHE STRING "" FORCE)
-
-set(FREERTOS_PLUS_TCP "STM32H5" CACHE STRING "" FORCE)
-
+set(FREERTOS_PLUS_TCP_NETWORK_IF "STM32" CACHE STRING "" FORCE)
 
 FetchContent_MakeAvailable(freertos_plus_tcp)
 
 # Add include paths
 target_include_directories(freertos_plus_tcp PUBLIC
     # Add user defined include paths
-#    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32H5xx_HAL_Driver/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/include
     ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure
-#    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32H5xx/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32H5xx_HAL_Driver/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32H5xx/Include
 )
 
 # Link directories setup
