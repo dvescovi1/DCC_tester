@@ -63,8 +63,9 @@ static void exampleTask( void * parameters )
 
     for( ; ; )
     {
-        /* Example Task Code */
-        vTaskDelay( 100 ); /* delay 100 ticks */
+      /* Toggle the green LED */
+      BSP_LED_Toggle(LED_GREEN);
+      vTaskDelay( 500 ); /* delay 500 ticks */
     }
 }
 /*-----------------------------------------------------------*/
