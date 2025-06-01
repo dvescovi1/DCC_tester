@@ -18,37 +18,29 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include "app_freertos.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-#include "cli_app.h"
-/* USER CODE END Includes */
+#include "app.h"
+//#include "cli_app.h"
 
 /* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-/* USER CODE BEGIN Variables */
-osThreadId_t cmdLineTaskHandle; // new command line task
+  static StaticTask_t exampleTaskTCB;
+  static StackType_t exampleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+#if 0
+  osThreadId_t cmdLineTaskHandle; // new command line task
 const osThreadAttr_t cmdLineTask_attributes = {
   .name = "cmdLineTask", // defined in cli_app.c
   .priority = (osPriority_t) osPriorityLow,
   .stack_size = 128 * 4
 };
-/* USER CODE END Variables */
+
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
@@ -56,73 +48,75 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 128 * 4
 };
-
+#endif
 /* Private function prototypes -----------------------------------------------*/
-/* USER CODE BEGIN FunctionPrototypes */
+static void exampleTask( void * parameters ) __attribute__( ( noreturn ) );
 
-/* USER CODE END FunctionPrototypes */
+
+/* Private application code --------------------------------------------------*/
+/*-----------------------------------------------------------*/
+
+static void exampleTask( void * parameters )
+{
+    /* Unused parameters. */
+    ( void ) parameters;
+
+    for( ; ; )
+    {
+        /* Example Task Code */
+        vTaskDelay( 100 ); /* delay 100 ticks */
+    }
+}
+/*-----------------------------------------------------------*/
+
 
 /**
   * @brief  FreeRTOS initialization
   * @param  None
   * @retval None
   */
-void MX_FREERTOS_Init(void) {
-  /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+void FREERTOS_Init(void) {
 
-  /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
+
   /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  ( void ) xTaskCreateStatic( exampleTask,
+                              "example",
+                              configMINIMAL_STACK_SIZE,
+                              NULL,
+                              configMAX_PRIORITIES - 1U,
+                              &( exampleTaskStack[ 0 ] ),
+                              &( exampleTaskTCB ) );
 
-  /* USER CODE BEGIN RTOS_THREADS */
+
+
+  //defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
   /* add threads, ... */
-  cmdLineTaskHandle = osThreadNew(vCommandConsoleTask, NULL, &cmdLineTask_attributes);
-  /* USER CODE END RTOS_THREADS */
+  //cmdLineTaskHandle = osThreadNew(vCommandConsoleTask, NULL, &cmdLineTask_attributes);
 
-  /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
-  /* USER CODE END RTOS_EVENTS */
 
 }
-/* USER CODE BEGIN Header_StartDefaultTask */
 /**
 * @brief Function implementing the defaultTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-  /* USER CODE BEGIN defaultTask */
   (void)argument;
   /* Infinite loop */
   for(;;)
   {
-    osDelay(500);
+//    osDelay(500);
     /* Toggle the green LED */
     BSP_LED_Toggle(LED_GREEN);
   }
-  /* USER CODE END defaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
-/* USER CODE BEGIN Application */
-
-/* USER CODE END Application */
-

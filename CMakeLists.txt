@@ -44,37 +44,29 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
-FetchContent_Declare( freertos_kernel
-  GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Kernel.git
-  GIT_TAG        main #Note: Best practice to use specific git-hash or tagged version
-)
+set(FREERTOS_KERNEL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party")
 
+# Add the freertos_config for FreeRTOS-Kernel
 add_library(freertos_config INTERFACE)
 
-target_include_directories(freertos_config SYSTEM
-INTERFACE
-    include
+target_include_directories(freertos_config
+    INTERFACE
+    "${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc"
 )
 
-target_compile_definitions(freertos_config
-  INTERFACE
-    projCOVERAGE_TEST=0
-)
+# Select the heap port.  values between 1-4 will pick a heap.
+set(FREERTOS_HEAP "4" CACHE STRING "" FORCE)
 
-set( FREERTOS_HEAP "4" CACHE STRING "" FORCE)
-# Select the cross-compile PORT
+# Select the native compile PORT
 set(FREERTOS_PORT "GCC_ARM_CM33_NTZ_NONSECURE" CACHE STRING "" FORCE)
+
+# Adding the FreeRTOS-Kernel subdirectory
+add_subdirectory(${FREERTOS_KERNEL_PATH}/FreeRTOS-Kernel)
+
 
 target_compile_definitions(freertos_config INTERFACE ${definitions})
 target_compile_options(freertos_config INTERFACE ${options})
 
-FetchContent_MakeAvailable(freertos_kernel)
-
-# Add include paths
-target_include_directories(freertos_kernel PUBLIC
-    # Add user defined include paths
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-)
 
 
 FetchContent_Declare( freertos_plus_tcp
@@ -106,8 +98,9 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/FreeRTOS_CLI.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cli_app.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/App.c
+#    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/FreeRTOS_CLI.c
+#    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cli_app.c
 )
 
 # Add include paths
@@ -125,4 +118,9 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
     # Add user defined libraries
+    freertos_kernel
+    freertos_config
+    freertos_plus_tcp
 )
+
+set_property(TARGET freertos_kernel PROPERTY C_STANDARD 90)

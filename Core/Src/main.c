@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "FreeRTOS.h"
+#include "FreeRTOS_IP.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,6 +52,7 @@ ETH_HandleTypeDef heth;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
+#if 0
 /* The MAC address array is not declared const as the MAC address will
 normally be read from an EEPROM and not hard coded (in real deployed
 applications).*/
@@ -65,7 +67,7 @@ static const uint8_t ucGatewayAddress[ 4 ] = { 10, 10, 10, 1 };
 
 /* The following is the address of an OpenDNS server. */
 static const uint8_t ucDNSServerAddress[ 4 ] = { 208, 67, 222, 222 };
-
+#endif
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,6 +77,7 @@ static void MX_ICACHE_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_ETH_Init(void);
 /* USER CODE BEGIN PFP */
+#if 0
 extern BaseType_t FreeRTOS_IPInit(
     const uint8_t ucIPAddress[  ],
     const uint8_t ucNetMask[  ],
@@ -82,7 +85,7 @@ extern BaseType_t FreeRTOS_IPInit(
     const uint8_t ucDNSServerAddress[  ],
     const uint8_t ucMACAddress[  ]
 );
-
+#endif
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -123,14 +126,16 @@ int main(void)
   MX_USART3_UART_Init();
   MX_ETH_Init();
   /* USER CODE BEGIN 2 */
+    /* Initialise the RTOS.  The tasks are created. */
+  FREERTOS_Init();
     /* Initialise the RTOS's TCP/IP stack.  The tasks that use the network
     are created in the vApplicationIPNetworkEventHook() hook function
     below.  The hook function is called when the network connects. */
-  FreeRTOS_IPInit( ucIPAddress,
-                    ucNetMask,
-                    ucGatewayAddress,
-                    ucDNSServerAddress,
-                    ucMACAddress );
+//FreeRTOS_IPInit( ucIPAddress,
+//                  ucNetMask,
+//                  ucGatewayAddress,
+//                  ucDNSServerAddress,
+//                  ucMACAddress );
 
 
   /* USER CODE END 2 */
@@ -145,6 +150,10 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  
+  /* Start the scheduler. */
+  vTaskStartScheduler();
+  
   while (1)
   {
 
