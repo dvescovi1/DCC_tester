@@ -23,6 +23,7 @@ set(CMAKE_PROJECT_NAME DCC_tester)
 
 # Include toolchain file
 include("cmake/gcc-arm-none-eabi.cmake")
+add_compile_definitions(STM32H563xx)
 
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
@@ -49,55 +50,24 @@ FetchContent_Declare( freertos_plus_tcp
   GIT_SUBMODULES "" # Don't grab any submodules since not latest
 )
 
-set(FREERTOS_PLUS_TCP_NETWORK_IF "STM32" CACHE STRING "" FORCE)
+#set(FREERTOS_PLUS_TCP_NETWORK_IF "STM32" CACHE STRING "" FORCE)
+set(FREERTOS_PLUS_TCP_NETWORK_IF "LOOPBACK" CACHE STRING "" FORCE)
+
+set(FREERTOS_PLUS_TCP "STM32H5" CACHE STRING "" FORCE)
+
 
 FetchContent_MakeAvailable(freertos_plus_tcp)
 
 # Add include paths
 target_include_directories(freertos_plus_tcp PUBLIC
     # Add user defined include paths
+#    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32H5xx_HAL_Driver/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/include
     ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32H5xx/Include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32H5xx_HAL_Driver/Inc
-)
-#[[
-# Add include paths
-target_include_directories(freertos_plus_tcp_port PRIVATE
-    # Add user defined include paths
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure
+#    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32H5xx/Include
 )
 
-# Add include paths
-target_include_directories(freertos_plus_tcp_utilities PRIVATE
-    # Add user defined include paths
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure
-)
-
-# Add include paths
-target_include_directories(freertos_plus_tcp_network_if PRIVATE
-    # Add user defined include paths
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure
-)
-
-# Add include paths
-target_include_directories(freertos_plus_tcp_network_if_common PRIVATE
-    # Add user defined include paths
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure
-)
-]]
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
@@ -123,7 +93,5 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
-    freertos_plus_tcp
-
     # Add user defined libraries
 )
