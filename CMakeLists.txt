@@ -69,17 +69,12 @@ target_compile_options(freertos_config INTERFACE ${options})
 
 set(FREERTOS_PLUS_TCP_NETWORK_IF "STM32" CACHE STRING "" FORCE)
 
-# Adding the FreeRTOS-Kernel subdirectory
+# Adding the FreeRTOS-Plus-TCP subdirectory
 add_subdirectory(${THIRD_PARTY_PATH}/FreeRTOS-Plus-TCP)
 
-target_link_libraries(freertos_plus_tcp PRIVATE
-    freertos_plus_tcp_port
-    freertos_plus_tcp_utilities
-    freertos_plus_tcp_network_if
-    freertos_plus_tcp_network_if_common
-)
 # Add include paths
-target_include_directories(freertos_plus_tcp INTERFACE
+target_include_directories(freertos_plus_tcp
+    INTERFACE
     # Add user defined include paths
     "${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc"
     "${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party/FreeRTOS-Kernel/include"
@@ -89,39 +84,6 @@ target_include_directories(freertos_plus_tcp INTERFACE
     "${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32H5xx/Include"
 )
 
-
-# target_include_directories(freertos_plus_tcp INTERFACE
-#     # Add user defined include paths
-#     "${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-#     ${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party/FreeRTOS-Kernel/include
-#     ${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party/FreeRTOS-Kernel/portable/GCC/ARM_CM33_NTZ/non_secure
-#     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32H5xx_HAL_Driver/Inc
-#     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Include
-#     ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32H5xx/Include"
-# )
-#[[
-
-FetchContent_Declare( freertos_plus_tcp
-  GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Plus-TCP.git
-  GIT_TAG        main #Note: Best practice to use specific git-hash or tagged version
-  GIT_SUBMODULES "" # Don't grab any submodules since not latest
-)
-
-set(FREERTOS_PLUS_TCP_NETWORK_IF "STM32" CACHE STRING "" FORCE)
-
-FetchContent_MakeAvailable(freertos_plus_tcp)
-
-# Add include paths
-target_include_directories(freertos_plus_tcp PUBLIC
-    # Add user defined include paths
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party/FreeRTOS-Kernel/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party/FreeRTOS-Kernel/portable/GCC/ARM_CM33_NTZ/non_secure
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32H5xx_HAL_Driver/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32H5xx/Include
-)
-]]
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths

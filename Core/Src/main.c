@@ -110,6 +110,116 @@ void vApplicationMallocFailedHook()
 	}
 }
 
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+{
+    static BaseType_t xTasksAlreadyCreated = pdFALSE;
+
+    /* If the network has just come up...*/
+    if( ( eNetworkEvent == eNetworkUp ) && ( xTasksAlreadyCreated == pdFALSE ) )
+    {
+        /* Do nothing. Just a stub. */
+
+        xTasksAlreadyCreated = pdTRUE;
+    }
+}
+
+
+eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+                                                    uint32_t ulIPAddress )
+{
+    /* Provide a stub for this function. */
+    return eDHCPContinue;
+}
+#define mainHOST_NAME           "Build Combination"
+#define mainDEVICE_NICK_NAME    "Build_Combination"
+const char * pcApplicationHostnameHook( void )
+{
+    /* This function will be called during the DHCP: the machine will be registered
+      * with an IP address plus this name. */
+    return mainHOST_NAME;
+}
+
+BaseType_t eConsiderPacketForProcessing( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    /* Provide a stub for this function. */
+    ( void ) pxNetworkBuffer;
+    return pdTRUE;
+}
+
+BaseType_t xApplicationDNSQueryHook( const char * pcName )
+{
+    BaseType_t xReturn;
+
+    /* Determine if a name lookup is for this node.  Two names are given
+      * to this node: that returned by pcApplicationHostnameHook() and that set
+      * by mainDEVICE_NICK_NAME. */
+    if( strcasecmp( pcName, pcApplicationHostnameHook() ) == 0 )
+    {
+        xReturn = pdPASS;
+    }
+    else if( strcasecmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
+    {
+        xReturn = pdPASS;
+    }
+    else
+    {
+        xReturn = pdFAIL;
+    }
+
+    return xReturn;
+}
+
+
+/*
+ * The stack will call this user hook for all Ethernet frames that it
+ * does not support, i.e. other than IPv4, IPv6 and ARP ( for the moment )
+ * If this hook returns eReleaseBuffer or eProcessBuffer, the stack will
+ * release and reuse the network buffer.  If this hook returns
+ * eReturnEthernetFrame, that means user code has reused the network buffer
+ * to generate a response and the stack will send that response out.
+ * If this hook returns eFrameConsumed, the user code has ownership of the
+ * network buffer and has to release it when it's done.
+ */
+    eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    {
+        ( void ) ( pxNetworkBuffer );
+        return eProcessBuffer;
+    }
+
+
+void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
+                                uint16_t usIdentifier )
+{
+    /* Provide a stub for this function. */
+}
+
+#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 )
+    /* DHCPv6 needs a time-stamp, seconds after 1970. */
+    uint32_t ulApplicationTimeHook( void )
+    {
+        return ( uint32_t ) time( NULL );
+    }
+#endif
+static UBaseType_t ulNextRand;
+
+UBaseType_t uxRand( void )
+{
+    const uint32_t ulMultiplier = 0x015a4e35UL, ulIncrement = 1UL;
+
+    /* Utility function to generate a pseudo random number. */
+
+    ulNextRand = ( ulMultiplier * ulNextRand ) + ulIncrement;
+    return( ( int ) ( ulNextRand ) & 0x7fffUL );
+}
+
+BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
+{
+    *pulNumber = ( uint32_t ) uxRand();
+
+    return pdTRUE;
+}
+
+
 /* USER CODE END 0 */
 
 /**
