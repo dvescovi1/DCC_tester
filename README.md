@@ -45,7 +45,7 @@ Note: If you download the ZIP file provided by GitHub UI, you will not get the c
 
 To clone using HTTPS:
 ```
-git clone --recursive https://github.com/NMRAxx/DCC_tester.git ./DCC_tester
+git clone --recursive https://github.com/nmradcc/DCC_tester.git ./DCC_tester
 cd ./DCC_tester
 ```
 
