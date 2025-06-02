@@ -60,7 +60,7 @@ set(FREERTOS_HEAP "4" CACHE STRING "" FORCE)
 # Select the native compile PORT
 set(FREERTOS_PORT "GCC_ARM_CM33_NTZ_NONSECURE" CACHE STRING "" FORCE)
 
-# Adding the FreeRTOS-Plus-TCP subdirectory
+# Adding the FreeRTOS subdirectory
 add_subdirectory(${THIRD_PARTY_PATH}/FreeRTOS-Kernel)
 
 
@@ -93,17 +93,14 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/App.c
-#    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/FreeRTOS_CLI.c
-#    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cli_app.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/FreeRTOS_CLI.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cli_app.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party/FreeRTOS-Kernel/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party/FreeRTOS-Plus-TCP/source/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middleware/Third_Party/FreeRTOS-Plus-TCP/source/portable/Compiler/GCC
 )
 
 # Add project symbols (macros)

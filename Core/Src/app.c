@@ -1,7 +1,6 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * File Name          : app_freertos.c
+  * File Name          : app.c
   * Description        : FreeRTOS applicative file
   ******************************************************************************
   * @attention
@@ -15,13 +14,12 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 
 /* Private includes ----------------------------------------------------------*/
 #include "app.h"
-//#include "cli_app.h"
+#include "cli_app.h"
 
 /* Private typedef -----------------------------------------------------------*/
 
@@ -30,8 +28,12 @@
 /* Private macro -------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
-  static StaticTask_t exampleTaskTCB;
-  static StackType_t exampleTaskStack[ configMINIMAL_STACK_SIZE ];
+  static StaticTask_t defaultTaskTCB;
+  static StackType_t defaultTaskStack[ configMINIMAL_STACK_SIZE * 4];
+  static StaticTask_t cmdLineTaskTCB;
+  static StackType_t cmdLineTaskStack[ configMINIMAL_STACK_SIZE * 4];
+
+  TaskHandle_t cmdLineTaskHandle; // handle for the command line task
 
 #if 0
   osThreadId_t cmdLineTaskHandle; // new command line task
@@ -40,23 +42,15 @@ const osThreadAttr_t cmdLineTask_attributes = {
   .priority = (osPriority_t) osPriorityLow,
   .stack_size = 128 * 4
 };
-
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
-};
 #endif
 /* Private function prototypes -----------------------------------------------*/
-static void exampleTask( void * parameters ) __attribute__( ( noreturn ) );
+static void defaultTask( void * parameters ) __attribute__( ( noreturn ) );
 
 
 /* Private application code --------------------------------------------------*/
-/*-----------------------------------------------------------*/
 
-static void exampleTask( void * parameters )
+
+static void defaultTask( void * parameters )
 {
     /* Unused parameters. */
     ( void ) parameters;
@@ -68,7 +62,6 @@ static void exampleTask( void * parameters )
       vTaskDelay( 500 ); /* delay 500 ticks */
     }
 }
-/*-----------------------------------------------------------*/
 
 
 /**
@@ -83,41 +76,27 @@ void FREERTOS_Init(void) {
   /* add semaphores, ... */
   /* start timers, add new ones, ... */
   /* add queues, ... */
-
-  /* creation of defaultTask */
-  ( void ) xTaskCreateStatic( exampleTask,
-                              "example",
-                              configMINIMAL_STACK_SIZE,
+  /* add threads, ... */
+  /* creation of default task */
+  ( void ) xTaskCreateStatic( defaultTask,
+                              "default",
+                              sizeof( defaultTaskStack ) / sizeof( StackType_t ),
                               NULL,
                               configMAX_PRIORITIES - 1U,
-                              &( exampleTaskStack[ 0 ] ),
-                              &( exampleTaskTCB ) );
+                              &( defaultTaskStack[ 0 ] ),
+                              &( defaultTaskTCB ) );
 
-
-
-  //defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-  /* add threads, ... */
-  //cmdLineTaskHandle = osThreadNew(vCommandConsoleTask, NULL, &cmdLineTask_attributes);
+ /* creation of command console task */
+  cmdLineTaskHandle = xTaskCreateStatic( vCommandConsoleTask,
+                              "cmdLine",
+                              sizeof( cmdLineTaskStack ) / sizeof( StackType_t ),
+                              NULL,
+                              configMAX_PRIORITIES - 1U,
+                              &( cmdLineTaskStack[ 0 ] ),
+                              &( cmdLineTaskTCB ) );
 
   /* add events, ... */
 
-}
-/**
-* @brief Function implementing the defaultTask thread.
-* @param argument: Not used
-* @retval None
-*/
-void StartDefaultTask(void *argument)
-{
-  (void)argument;
-  /* Infinite loop */
-  for(;;)
-  {
-//    osDelay(500);
-    /* Toggle the green LED */
-    BSP_LED_Toggle(LED_GREEN);
-  }
 }
 
 /* Private application code --------------------------------------------------*/

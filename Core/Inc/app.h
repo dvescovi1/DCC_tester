@@ -34,7 +34,7 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 
 /* Exported types ------------------------------------------------------------*/
-
+extern TaskHandle_t cmdLineTaskHandle;
 /* Exported constants --------------------------------------------------------*/
 
 /* Private define ------------------------------------------------------------*/
@@ -43,7 +43,7 @@ extern "C" {
 
 /* Exported function prototypes -----------------------------------------------*/
 
-void StartDefaultTask(void *argument);
+//void StartDefaultTask(void *argument);
 
 void FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 

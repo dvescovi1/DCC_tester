@@ -77,13 +77,13 @@ static void MX_ICACHE_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_ETH_Init(void);
 /* USER CODE BEGIN PFP */
-extern BaseType_t FreeRTOS_IPInit(
-    const uint8_t ucIPAddress[  ],
-    const uint8_t ucNetMask[  ],
-    const uint8_t ucGatewayAddress[  ],
-    const uint8_t ucDNSServerAddress[  ],
-    const uint8_t ucMACAddress[  ]
-);
+//extern BaseType_t FreeRTOS_IPInit(
+//    const uint8_t ucIPAddress[  ],
+//    const uint8_t ucNetMask[  ],
+//    const uint8_t ucGatewayAddress[  ],
+//    const uint8_t ucDNSServerAddress[  ],
+//    const uint8_t ucMACAddress[  ]
+//);
 
 /* USER CODE END PFP */
 
@@ -127,9 +127,12 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
                                                     uint32_t ulIPAddress )
 {
+    (void)eDHCPPhase;
+    (void)ulIPAddress;
     /* Provide a stub for this function. */
     return eDHCPContinue;
 }
+
 #define mainHOST_NAME           "Build Combination"
 #define mainDEVICE_NICK_NAME    "Build_Combination"
 const char * pcApplicationHostnameHook( void )
@@ -190,6 +193,8 @@ BaseType_t xApplicationDNSQueryHook( const char * pcName )
 void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                 uint16_t usIdentifier )
 {
+    (void)eStatus;
+    (void)usIdentifier;
     /* Provide a stub for this function. */
 }
 
