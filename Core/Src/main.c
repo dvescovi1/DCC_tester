@@ -89,6 +89,26 @@ extern BaseType_t FreeRTOS_IPInit(
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void vApplicationStackOverflowHook(TaskHandle_t xTask,
+								   char *pcTaskName)
+{
+  (void) xTask;
+	__disable_irq();
+	HAL_UART_Transmit(&huart3, (uint8_t *)"[Error] Stack Overflow\r\nIn Task ", 33, 1000);
+	HAL_UART_Transmit(&huart3, (uint8_t *)pcTaskName, strlen(pcTaskName), 1000);
+	while (1)
+	{
+	}
+}
+
+void vApplicationMallocFailedHook()
+{
+	__disable_irq();
+	HAL_UART_Transmit(&huart3, (uint8_t *)"[Error] malloc() failed\r\n", 26, 1000);
+	while (1)
+	{
+	}
+}
 
 /* USER CODE END 0 */
 
