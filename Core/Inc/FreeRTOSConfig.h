@@ -1,6 +1,5 @@
-/* USER CODE BEGIN Header */
 /*
- * FreeRTOS Kernel V10.6.2
+ * FreeRTOS Kernel 
  * Portion Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  * Portion Copyright (C) 2019 StMicroelectronics, Inc.  All Rights Reserved.
  *
@@ -26,10 +25,10 @@
  *
  * 1 tab == 4 spaces!
  */
-/* USER CODE END Header */
 
-#ifndef __FREERTOS_CONFIG_H
-#define __FREERTOS_CONFIG_H
+
+#ifndef FREERTOS_CONFIG_H
+#define FREERTOS_CONFIG_H
 
 /*-----------------------------------------------------------
  * Application specific definitions.
@@ -43,9 +42,7 @@
  * See http://www.freertos.org/a00110.html
  *----------------------------------------------------------*/
 
-/* USER CODE BEGIN Includes */
 /* Section where include file can be added */
-/* USER CODE END Includes */
 
 /* Ensure definitions are only used by the compiler, and not by the assembler. */
 #if defined(__ICCARM__) || defined(__ARMCC_VERSION) || defined(__GNUC__)
@@ -157,17 +154,28 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
-/* USER CODE BEGIN 1 */
+
 #define configASSERT( x ) if ((x) == 0) {taskDISABLE_INTERRUPTS(); for( ;; );}
-/* USER CODE END 1 */
 
 #define SysTick_Handler xPortSysTickHandler
 
-/* USER CODE BEGIN Defines */
-/* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
-/* USER CODE BEGIN Defines */
-/* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
-#define configCOMMAND_INT_MAX_OUTPUT_SIZE 200
-/* USER CODE END Defines */
 
-#endif /* __FREERTOS_CONFIG_H */
+/* Defines the kernel provided implementation of
+ * vApplicationGetIdleTaskMemory() and vApplicationGetTimerTaskMemory()
+ * to provide the memory that is used by the Idle task and Timer task
+ * respectively. The application can provide it's own implementation of
+ * vApplicationGetIdleTaskMemory() and vApplicationGetTimerTaskMemory() by
+ * setting configKERNEL_PROVIDED_STATIC_MEMORY to 0 or leaving it undefined. */
+#define configKERNEL_PROVIDED_STATIC_MEMORY    1
+
+
+/* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
+/* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS
+standard names. */
+#define xPortPendSVHandler                          PendSV_Handler
+#define vPortSVCHandler                             SVC_Handler
+#define xPortSysTickHandler                         SysTick_Handler
+
+#define configCOMMAND_INT_MAX_OUTPUT_SIZE 200
+
+#endif /* FREERTOS_CONFIG_H */

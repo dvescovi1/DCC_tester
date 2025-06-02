@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "FreeRTOS.h"
+#include "stm32h5xx_nucleo.h"
 #include "task.h"
 #include "FreeRTOS_CLI.h"
 #include "stdbool.h"
@@ -54,9 +55,8 @@ BaseType_t cmd_toggle_led(char *pcWriteBuffer, size_t xWriteBufferLen,
     (void)xWriteBufferLen; // contains the length of the write buffer
     
     /* Toggle the LED */
-    //ToggleLED();
-
-    
+    BSP_LED_Toggle(LED_YELLOW);
+  
     /* Write the response to the buffer */
     uint8_t string[] = "LED toggled\r\n";
     strcpy(pcWriteBuffer, (char *)string);

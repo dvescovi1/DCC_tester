@@ -18,11 +18,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os2.h"
+#include "string.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "FreeRTOS.h"
+#include "FreeRTOS_IP.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,24 +43,187 @@
 
 /* Private variables ---------------------------------------------------------*/
 
+ETH_TxPacketConfigTypeDef TxConfig;
+ETH_DMADescTypeDef  DMARxDscrTab[ETH_RX_DESC_CNT]; /* Ethernet Rx DMA Descriptors */
+ETH_DMADescTypeDef  DMATxDscrTab[ETH_TX_DESC_CNT]; /* Ethernet Tx DMA Descriptors */
+
+ETH_HandleTypeDef heth;
+
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
+
+/* The MAC address array is not declared const as the MAC address will
+normally be read from an EEPROM and not hard coded (in real deployed
+applications).*/
+static uint8_t ucMACAddress[ 6 ] = { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55 };
+
+/* Define the network addressing.  These parameters will be used if either
+ipconfigUDE_DHCP is 0 or if ipconfigUSE_DHCP is 1 but DHCP auto configuration
+failed. */
+static const uint8_t ucIPAddress[ 4 ] = { 10, 10, 10, 200 };
+static const uint8_t ucNetMask[ 4 ] = { 255, 0, 0, 0 };
+static const uint8_t ucGatewayAddress[ 4 ] = { 10, 10, 10, 1 };
+
+/* The following is the address of an OpenDNS server. */
+static const uint8_t ucDNSServerAddress[ 4 ] = { 208, 67, 222, 222 };
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void MX_FREERTOS_Init(void);
 static void MX_GPIO_Init(void);
 static void MX_ICACHE_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_ETH_Init(void);
 /* USER CODE BEGIN PFP */
+//extern BaseType_t FreeRTOS_IPInit(
+//    const uint8_t ucIPAddress[  ],
+//    const uint8_t ucNetMask[  ],
+//    const uint8_t ucGatewayAddress[  ],
+//    const uint8_t ucDNSServerAddress[  ],
+//    const uint8_t ucMACAddress[  ]
+//);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void vApplicationStackOverflowHook(TaskHandle_t xTask,
+								   char *pcTaskName)
+{
+  (void) xTask;
+	__disable_irq();
+	HAL_UART_Transmit(&huart3, (uint8_t *)"[Error] Stack Overflow\r\nIn Task ", 33, 1000);
+	HAL_UART_Transmit(&huart3, (uint8_t *)pcTaskName, strlen(pcTaskName), 1000);
+	while (1)
+	{
+	}
+}
+
+void vApplicationMallocFailedHook()
+{
+	__disable_irq();
+	HAL_UART_Transmit(&huart3, (uint8_t *)"[Error] malloc() failed\r\n", 26, 1000);
+	while (1)
+	{
+	}
+}
+
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+{
+    static BaseType_t xTasksAlreadyCreated = pdFALSE;
+
+    /* If the network has just come up...*/
+    if( ( eNetworkEvent == eNetworkUp ) && ( xTasksAlreadyCreated == pdFALSE ) )
+    {
+        /* Do nothing. Just a stub. */
+
+        xTasksAlreadyCreated = pdTRUE;
+    }
+}
+
+
+eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+                                                    uint32_t ulIPAddress )
+{
+    (void)eDHCPPhase;
+    (void)ulIPAddress;
+    /* Provide a stub for this function. */
+    return eDHCPContinue;
+}
+
+#define mainHOST_NAME           "Build Combination"
+#define mainDEVICE_NICK_NAME    "Build_Combination"
+const char * pcApplicationHostnameHook( void )
+{
+    /* This function will be called during the DHCP: the machine will be registered
+      * with an IP address plus this name. */
+    return mainHOST_NAME;
+}
+
+BaseType_t eConsiderPacketForProcessing( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    /* Provide a stub for this function. */
+    ( void ) pxNetworkBuffer;
+    return pdTRUE;
+}
+
+BaseType_t xApplicationDNSQueryHook( const char * pcName )
+{
+    BaseType_t xReturn;
+
+    /* Determine if a name lookup is for this node.  Two names are given
+      * to this node: that returned by pcApplicationHostnameHook() and that set
+      * by mainDEVICE_NICK_NAME. */
+    if( strcasecmp( pcName, pcApplicationHostnameHook() ) == 0 )
+    {
+        xReturn = pdPASS;
+    }
+    else if( strcasecmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
+    {
+        xReturn = pdPASS;
+    }
+    else
+    {
+        xReturn = pdFAIL;
+    }
+
+    return xReturn;
+}
+
+
+/*
+ * The stack will call this user hook for all Ethernet frames that it
+ * does not support, i.e. other than IPv4, IPv6 and ARP ( for the moment )
+ * If this hook returns eReleaseBuffer or eProcessBuffer, the stack will
+ * release and reuse the network buffer.  If this hook returns
+ * eReturnEthernetFrame, that means user code has reused the network buffer
+ * to generate a response and the stack will send that response out.
+ * If this hook returns eFrameConsumed, the user code has ownership of the
+ * network buffer and has to release it when it's done.
+ */
+    eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    {
+        ( void ) ( pxNetworkBuffer );
+        return eProcessBuffer;
+    }
+
+
+void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
+                                uint16_t usIdentifier )
+{
+    (void)eStatus;
+    (void)usIdentifier;
+    /* Provide a stub for this function. */
+}
+
+#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 )
+    /* DHCPv6 needs a time-stamp, seconds after 1970. */
+    uint32_t ulApplicationTimeHook( void )
+    {
+        return ( uint32_t ) time( NULL );
+    }
+#endif
+static UBaseType_t ulNextRand;
+
+UBaseType_t uxRand( void )
+{
+    const uint32_t ulMultiplier = 0x015a4e35UL, ulIncrement = 1UL;
+
+    /* Utility function to generate a pseudo random number. */
+
+    ulNextRand = ( ulMultiplier * ulNextRand ) + ulIncrement;
+    return( ( int ) ( ulNextRand ) & 0x7fffUL );
+}
+
+BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
+{
+    *pulNumber = ( uint32_t ) uxRand();
+
+    return pdTRUE;
+}
+
 
 /* USER CODE END 0 */
 
@@ -94,15 +258,20 @@ int main(void)
   MX_GPIO_Init();
   MX_ICACHE_Init();
   MX_USART3_UART_Init();
+  MX_ETH_Init();
   /* USER CODE BEGIN 2 */
+    /* Initialise the RTOS.  The tasks are created. */
+  FREERTOS_Init();
+    /* Initialise the RTOS's TCP/IP stack.  The tasks that use the network
+    are created in the vApplicationIPNetworkEventHook() hook function
+    below.  The hook function is called when the network connects. */
+  FreeRTOS_IPInit( ucIPAddress,
+                    ucNetMask,
+                    ucGatewayAddress,
+                    ucDNSServerAddress,
+                    ucMACAddress );
 
   /* USER CODE END 2 */
-
-  /* Init scheduler */
-  osKernelInitialize();
-
-  /* Call init function for freertos objects (in app_freertos.c) */
-  MX_FREERTOS_Init();
 
   /* Initialize leds */
   BSP_LED_Init(LED_GREEN);
@@ -112,13 +281,12 @@ int main(void)
   /* Initialize User push-button without interrupt mode. */
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
 
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
-
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  
+  /* Start the scheduler. */
+  vTaskStartScheduler();
+  
   while (1)
   {
 
@@ -183,6 +351,55 @@ void SystemClock_Config(void)
   /** Configure the programming delay
   */
   __HAL_FLASH_SET_PROGRAM_DELAY(FLASH_PROGRAMMING_DELAY_2);
+}
+
+/**
+  * @brief ETH Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ETH_Init(void)
+{
+
+  /* USER CODE BEGIN ETH_Init 0 */
+
+  /* USER CODE END ETH_Init 0 */
+
+   static uint8_t MACAddr[6];
+
+  /* USER CODE BEGIN ETH_Init 1 */
+
+  /* USER CODE END ETH_Init 1 */
+  heth.Instance = ETH;
+  MACAddr[0] = 0x00;
+  MACAddr[1] = 0x80;
+  MACAddr[2] = 0xE1;
+  MACAddr[3] = 0x00;
+  MACAddr[4] = 0x00;
+  MACAddr[5] = 0x00;
+  heth.Init.MACAddr = &MACAddr[0];
+  heth.Init.MediaInterface = HAL_ETH_RMII_MODE;
+  heth.Init.TxDesc = DMATxDscrTab;
+  heth.Init.RxDesc = DMARxDscrTab;
+  heth.Init.RxBuffLen = 1524;
+
+  /* USER CODE BEGIN MACADDRESS */
+
+  /* USER CODE END MACADDRESS */
+
+  if (HAL_ETH_Init(&heth) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  memset(&TxConfig, 0 , sizeof(ETH_TxPacketConfigTypeDef));
+  TxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CSUM | ETH_TX_PACKETS_FEATURES_CRCPAD;
+  TxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
+  TxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
+  /* USER CODE BEGIN ETH_Init 2 */
+
+  /* USER CODE END ETH_Init 2 */
+
 }
 
 /**
@@ -311,22 +528,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RMII_MDC_Pin RMII_RXD0_Pin RMII_RXD1_Pin */
-  GPIO_InitStruct.Pin = RMII_MDC_Pin|RMII_RXD0_Pin|RMII_RXD1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : RMII_REF_CLK_Pin RMII_MDIO_Pin RMII_CRS_DV_Pin */
-  GPIO_InitStruct.Pin = RMII_REF_CLK_Pin|RMII_MDIO_Pin|RMII_CRS_DV_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
   /*Configure GPIO pin : VBUS_SENSE_Pin */
   GPIO_InitStruct.Pin = VBUS_SENSE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
@@ -345,14 +546,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : RMII_TXD1_Pin */
-  GPIO_InitStruct.Pin = RMII_TXD1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(RMII_TXD1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PG4 */
   GPIO_InitStruct.Pin = GPIO_PIN_4;
@@ -383,14 +576,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RMII_TXT_EN_Pin RMI_TXD0_Pin */
-  GPIO_InitStruct.Pin = RMII_TXT_EN_Pin|RMI_TXD0_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-
   /*Configure GPIO pins : ARD_D1_TX_Pin ARD_D0_RX_Pin */
   GPIO_InitStruct.Pin = ARD_D1_TX_Pin|ARD_D0_RX_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -400,7 +585,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI13_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(EXTI13_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI13_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
